@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "chrotrixurum"
+name = "chxlibrary"
 version = "0.1.0"  # Sincronizado con __version__ en chrotrixurum.py
 description = "Utilidades místicas y prácticas para Python (librería monolítica)."
 readme = "README.md"  # Se recomienda añadir un README.md al repositorio
