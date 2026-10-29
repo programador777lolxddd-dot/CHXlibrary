@@ -1,61 +1,53 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "chxlibrary"
-version = "0.1.0"  # Sincronizado con __version__ en chrotrixurum.py
-description = "Utilidades místicas y prácticas para Python (librería monolítica)."
-readme = "README.md"  # Se recomienda añadir un README.md al repositorio
+version = "0.1.0"
+description = "Utilidades prácticas para Python: texto, números, fechas, archivos y funciones creativas."
+readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "Apache-2.0" }
 authors = [
     { name = "programador777lolxddd-dot" },
 ]
-keywords = ["utilidades", "strings", "números", "fechas", "archivos", "arcana"]
+keywords = ["python", "utilidades", "strings", "números", "fechas", "archivos"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Utilities",
 ]
 
-# Dependencias de ejecución (ninguna externa, solo stdlib)
-dependencies = []
+[project.urls]
+Homepage = "https://github.com/programador777lolxddd-dot/CHXlibrary"
+Repository = "https://github.com/programador777lolxddd-dot/CHXlibrary"
+Issues = "https://github.com/programador777lolxddd-dot/CHXlibrary/issues"
 
 [project.optional-dependencies]
-# Si en el futuro se añaden pruebas, se pueden declarar aquí
-dev = ["pytest>=7.0", "build>=0.9"]
+dev = ["pytest>=7.0", "build>=1.0", "ruff>=0.4"]
 
 [project.scripts]
-# Expone el script de demostración si se ejecuta `chrotrixurum` desde la terminal
-chrotrixurum = "chrotrixurum:main"  # Añadir una función main() en chrotrixurum.py si se desea
+chrotrixurum = "chrotrixurum:main"
 
 [tool.setuptools]
-# Al ser un solo archivo, se especifica como py-module
 py-modules = ["chrotrixurum"]
-
-[tool.setuptools.package-data]
-# No hay datos adicionales por ahora
-
-# ── Configuración opcional para herramientas de calidad ──
-[tool.black]
-line-length = 88
-target-version = ["py38"]
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "I", "N", "W"]
-ignore = []
+target-version = "py38"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q"
-testpaths = ["tests"]  # Cuando se añadan pruebas
+addopts = "-ra"
+testpaths = ["tests"]
