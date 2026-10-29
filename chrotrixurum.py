@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-Chrotrixurum — utilidades místicas y prácticas para Python.
-Versión monolítica (un solo archivo).
+CHXLibrary — utilidades prácticas para Python.
 
 Uso como librería:
     >>> import chrotrixurum as chx
     >>> chx.slugify("Hola Mundo Ñandú")
     'hola-mundo-nandu'
 
-Uso como script (demo):
-    $ python chrotrixurum.py
+Uso como script:
+    $ python -m chrotrixurum
 """
 
 from __future__ import annotations
@@ -24,135 +23,100 @@ from typing import Iterator, Union
 
 __version__ = "0.1.0"
 __all__ = [
-    # strings
     "slugify", "snake_case", "camel_case", "truncate", "is_palindrome",
-    # numbers
     "clamp", "lerp", "is_prime", "fibonacci", "percent",
-    # dates
     "humanize_delta", "days_between", "is_weekend",
-    # files
     "human_size", "read_lines_safe", "ensure_dir",
-    # arcana
-    "divine", "sigil", "palindrome_magic",
-    # metadatos
-    "__version__",
+    "divine", "sigil", "palindrome_magic", "main", "__version__",
 ]
 
 
-# ─────────────────────────────────────────────────────────────────────
-# strings
-# ─────────────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------
+# Strings
+# ---------------------------------------------------------------------
 def _strip_accents(text: str) -> str:
     return "".join(
-        c for c in unicodedata.normalize("NFD", text)
-        if unicodedata.category(c) != "Mn"
+        char for char in unicodedata.normalize("NFD", text)
+        if unicodedata.category(char) != "Mn"
     )
 
 
 def slugify(text: str) -> str:
-    """Convierte texto en slug URL-friendly.
-
-    >>> slugify("Hola Mundo Ñandú!")
-    'hola-mundo-nandu'
-    """
+    """Convierte texto en un slug apto para URLs."""
     text = _strip_accents(text).lower()
     text = re.sub(r"[^a-z0-9]+", "-", text)
     return text.strip("-")
 
 
 def snake_case(text: str) -> str:
-    """Convierte CamelCase o texto libre a snake_case.
-
-    >>> snake_case("HolaMundoCruel")
-    'hola_mundo_cruel'
-    """
+    """Convierte CamelCase o texto libre a snake_case."""
     text = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", text)
     text = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", text)
     return re.sub(r"[\s\-]+", "_", text).lower().strip("_")
 
 
 def camel_case(text: str) -> str:
-    """Convierte texto a CamelCase.
-
-    >>> camel_case("hola mundo cruel")
-    'HolaMundoCruel'
-    """
+    """Convierte texto separado por espacios, guiones o guiones bajos a CamelCase."""
     parts = re.split(r"[_\-\s]+", text.strip())
-    return "".join(p.capitalize() for p in parts if p)
+    return "".join(part.capitalize() for part in parts if part)
 
 
 def truncate(text: str, length: int, suffix: str = "…") -> str:
-    """Trunca un texto respetando un sufijo.
-
-    >>> truncate("Chrotrixurum eterno", 10)
-    'Chrotrixur…'
-    """
+    """Limita un texto a *length* caracteres, incluyendo el sufijo."""
+    if length < 0:
+        raise ValueError("length no puede ser negativo")
+    if length == 0:
+        return ""
+    if len(text) <= length:
+        return text
     if length <= len(suffix):
         return suffix[:length]
-    return text if len(text) <= length else text[: length - len(suffix)] + suffix
+    return text[: length - len(suffix)] + suffix
 
 
 def is_palindrome(text: str, ignore_case: bool = True) -> bool:
-    """True si el texto es palíndromo (ignora signos y espacios).
-
-    >>> is_palindrome("Anita lava la tina")
-    True
-    """
+    """Comprueba si un texto es palíndromo, ignorando espacios y signos."""
     clean = re.sub(r"[^a-zA-Z0-9]", "", _strip_accents(text))
     if ignore_case:
         clean = clean.lower()
     return clean == clean[::-1]
 
 
-# ─────────────────────────────────────────────────────────────────────
-# numbers
-# ─────────────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------
+# Numbers
+# ---------------------------------------------------------------------
 def clamp(value: float, lo: float, hi: float) -> float:
-    """Limita *value* al rango [lo, hi].
-
-    >>> clamp(15, 0, 10)
-    10
-    """
+    """Limita *value* al rango [lo, hi]. Si el rango está invertido, lo corrige."""
     if lo > hi:
         lo, hi = hi, lo
     return max(lo, min(hi, value))
 
 
 def lerp(a: float, b: float, t: float) -> float:
-    """Interpolación lineal entre *a* y *b* con factor *t* ∈ [0,1].
-
-    >>> lerp(0, 10, 0.5)
-    5.0
-    """
+    """Interpola linealmente entre *a* y *b*, limitando *t* al rango [0, 1]."""
     return a + (b - a) * clamp(t, 0.0, 1.0)
 
 
 def is_prime(n: int) -> bool:
-    """Determina si *n* es primo.
-
-    >>> is_prime(97)
-    True
-    """
+    """Devuelve True si *n* es un número primo."""
     if n < 2:
         return False
     if n in (2, 3):
         return True
     if n % 2 == 0 or n % 3 == 0:
         return False
-    i = 5
-    while i * i <= n:
-        if n % i == 0 or n % (i + 2) == 0:
+    divisor = 5
+    while divisor * divisor <= n:
+        if n % divisor == 0 or n % (divisor + 2) == 0:
             return False
-        i += 6
+        divisor += 6
     return True
 
 
 def fibonacci(n: int) -> Iterator[int]:
-    """Generador con los primeros *n* números de Fibonacci.
-
-    >>> list(fibonacci(6))
-    [0, 1, 1, 2, 3, 5]
-    """
+    """Genera los primeros *n* números de Fibonacci."""
+    if n < 0:
+        raise ValueError("n no puede ser negativo")
     a, b = 0, 1
     for _ in range(n):
         yield a
@@ -160,69 +124,58 @@ def fibonacci(n: int) -> Iterator[int]:
 
 
 def percent(part: float, whole: float, decimals: int = 1) -> str:
-    """Porcentaje formateado de *part* sobre *whole*.
-
-    >>> percent(1, 4)
-    '25.0%'
-    """
+    """Devuelve *part* como porcentaje de *whole*, formateado como texto."""
+    if decimals < 0:
+        raise ValueError("decimals no puede ser negativo")
     if whole == 0:
         return "0%"
     return f"{part / whole * 100:.{decimals}f}%"
 
 
-# ─────────────────────────────────────────────────────────────────────
-# dates
-# ─────────────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------
+# Dates
+# ---------------------------------------------------------------------
 def humanize_delta(delta: timedelta) -> str:
-    """Convierte un timedelta en frase legible.
+    """Convierte una diferencia temporal en una frase en español.
 
-    >>> humanize_delta(timedelta(hours=3, minutes=20))
-    'hace 3 horas'
+    Una diferencia positiva se interpreta como tiempo futuro; una negativa,
+    como tiempo pasado.
     """
-    seconds = int(abs(delta.total_seconds()))
-    future = delta.total_seconds() >= 0
+    total_seconds = delta.total_seconds()
+    seconds = int(abs(total_seconds))
+    future = total_seconds >= 0
     units = [
         ("año", 365 * 24 * 3600), ("mes", 30 * 24 * 3600),
-        ("día", 24 * 3600), ("hora", 3600),
-        ("minuto", 60), ("segundo", 1),
+        ("día", 24 * 3600), ("hora", 3600), ("minuto", 60),
+        ("segundo", 1),
     ]
-    for name, secs in units:
-        if seconds >= secs:
-            count = seconds // secs
-            plural = "s" if count != 1 and name != "mes" else ""
+    for name, unit_seconds in units:
+        if seconds >= unit_seconds:
+            count = seconds // unit_seconds
+            plural = "s" if count != 1 else ""
             label = f"{count} {name}{plural}"
             return f"{'dentro de' if future else 'hace'} {label}"
     return "ahora mismo"
 
 
 def days_between(a: date, b: date) -> int:
-    """Días absolutos entre dos fechas.
-
-    >>> days_between(date(2024, 1, 1), date(2024, 1, 10))
-    9
-    """
+    """Devuelve el número absoluto de días entre dos fechas."""
     return abs((b - a).days)
 
 
 def is_weekend(d: Union[date, datetime, None] = None) -> bool:
-    """True si la fecha cae en sábado o domingo.
-
-    >>> is_weekend(date(2024, 1, 6))
-    True
-    """
+    """Comprueba si una fecha es sábado o domingo; por defecto usa hoy."""
     d = d or date.today()
     return d.weekday() >= 5
 
 
-# ─────────────────────────────────────────────────────────────────────
-# files
-# ─────────────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------
+# Files
+# ---------------------------------------------------------------------
 def human_size(bytes_: int) -> str:
-    """Bytes a cadena legible.
-
-    >>> human_size(1536)
-    '1.5 KB'
-    """
+    """Convierte una cantidad de bytes a una unidad legible."""
+    if bytes_ < 0:
+        raise ValueError("bytes_ no puede ser negativo")
     units = ["B", "KB", "MB", "GB", "TB", "PB"]
     size = float(bytes_)
     for unit in units:
@@ -233,76 +186,67 @@ def human_size(bytes_: int) -> str:
 
 
 def read_lines_safe(path: Union[str, Path]) -> Iterator[str]:
-    """Lee un archivo línea a línea sin cargarlo entero en memoria."""
-    p = Path(path)
-    with p.open("r", encoding="utf-8", errors="replace") as fh:
-        for line in fh:
-            yield line.rstrip("\n")
+    """Lee un archivo UTF-8 línea por línea, reemplazando bytes inválidos."""
+    with Path(path).open("r", encoding="utf-8", errors="replace") as file:
+        for line in file:
+            yield line.rstrip("\r\n")
 
 
 def ensure_dir(path: Union[str, Path]) -> Path:
-    """Crea el directorio si no existe y lo devuelve."""
-    p = Path(path)
-    p.mkdir(parents=True, exist_ok=True)
-    return p
+    """Crea un directorio y sus padres si no existen, y devuelve su ruta."""
+    directory = Path(path)
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
 
 
-# ─────────────────────────────────────────────────────────────────────
-# arcana
-# ─────────────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------
+# Creative utilities
+# ---------------------------------------------------------------------
 _SIGILS = "⛧⛥✧✦✩✶✷✸❂☽☾♆♇♄♅⛤"
 
 
 def divine(question: str, seed: Union[int, None] = None) -> str:
-    """Veredicto astral determinista (misma pregunta ⇒ misma respuesta).
-
-    >>> divine("¿Aprobaré?", seed=42) == divine("¿Aprobaré?", seed=42)
-    True
-    """
+    """Genera una respuesta creativa; con la misma semilla es reproducible."""
     rng = random.Random(seed if seed is not None else question)
-    respuestas = [
+    answers = [
         "sí, sin duda.", "es posible.", "los astros guardan silencio.",
         "no cuentes con ello.", "sí, pero con esfuerzo.",
         "pregunta de nuevo más tarde.", "definitivamente no.",
         "las señales apuntan a que sí.",
     ]
-    return f"Los astros susurran: {rng.choice(respuestas)}"
+    return f"Los astros susurran: {rng.choice(answers)}"
 
 
 def sigil(text: str, length: int = 12) -> str:
-    """Sigilo determinista a partir de un texto.
-
-    >>> len(sigil("chrotrixurum", 8))
-    8
-    """
-    digest = hashlib.sha256(text.encode()).digest()
+    """Genera un sigilo reproducible a partir de un texto."""
+    if length < 0:
+        raise ValueError("length no puede ser negativo")
+    digest = hashlib.sha256(text.encode("utf-8")).digest()
     rng = random.Random(digest)
     return "".join(rng.choice(_SIGILS) for _ in range(length))
 
 
 def palindrome_magic(text: str) -> dict:
-    """Analiza el karma palindrómico de una frase."""
+    """Devuelve un análisis lúdico de una frase y su posible palíndromo."""
     clean = re.sub(r"[^a-zA-Z0-9]", "", _strip_accents(text)).lower()
     is_pal = clean == clean[::-1]
+    if is_pal:
+        verdict = f"{sigil(text)} Los ecos se repiten. Karma elevado."
+    else:
+        verdict = f"{sigil(text)} Los ecos se dispersan. Karma terrenal."
     return {
         "texto": text,
         "limpio": clean,
         "es_palindromo": is_pal,
         "longitud": len(clean),
         "karma": "elevado" if is_pal else "terrenal",
-        "veredicto": (
-            f"{sigil(text)} Los ecos se repiten. Karma elevado."
-            if is_pal else
-            f"{sigil(text)} Los ecos se dispersan. Karma terrenal."
-        ),
+        "veredicto": verdict,
     }
 
 
-# ─────────────────────────────────────────────────────────────────────
-# demo / CLI
-# ─────────────────────────────────────────────────────────────────────
-def _demo() -> None:
-    print(f"🔮 Chrotrixurum v{__version__}\n")
+def main() -> None:
+    """Ejecuta una demostración breve de las funciones principales."""
+    print(f"CHXLibrary v{__version__}\n")
     print("slugify :", slugify("Hola Mundo Ñandú!"))
     print("snake   :", snake_case("HolaMundoCruel"))
     print("camel   :", camel_case("hola mundo cruel"))
@@ -317,9 +261,8 @@ def _demo() -> None:
     print("delta   :", humanize_delta(timedelta(hours=3, minutes=20)))
     print("weekend :", is_weekend(date(2024, 1, 6)))
     print("divine  :", divine("¿Aprobaré el examen?"))
-    print("sigil   :", sigil("chrotrixurum"))
-    print("magic   :", palindrome_magic("Anita lava la tina")["veredicto"])
+    print("sigil   :", sigil("chxlibrary"))
 
 
 if __name__ == "__main__":
-    _demo()
+    main()
